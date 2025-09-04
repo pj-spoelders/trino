@@ -16,21 +16,7 @@ package io.trino.plugin.exasol;
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
 import io.trino.plugin.base.mapping.IdentifierMapping;
-import io.trino.plugin.jdbc.BaseJdbcClient;
-import io.trino.plugin.jdbc.BaseJdbcConfig;
-import io.trino.plugin.jdbc.ColumnMapping;
-import io.trino.plugin.jdbc.ConnectionFactory;
-import io.trino.plugin.jdbc.JdbcColumnHandle;
-import io.trino.plugin.jdbc.JdbcExpression;
-import io.trino.plugin.jdbc.JdbcJoinCondition;
-import io.trino.plugin.jdbc.JdbcOutputTableHandle;
-import io.trino.plugin.jdbc.JdbcTableHandle;
-import io.trino.plugin.jdbc.JdbcTypeHandle;
-import io.trino.plugin.jdbc.LongReadFunction;
-import io.trino.plugin.jdbc.LongWriteFunction;
-import io.trino.plugin.jdbc.QueryBuilder;
-import io.trino.plugin.jdbc.WriteFunction;
-import io.trino.plugin.jdbc.WriteMapping;
+import io.trino.plugin.jdbc.*;
 import io.trino.plugin.jdbc.logging.RemoteQueryModifier;
 import io.trino.spi.TrinoException;
 import io.trino.spi.connector.AggregateFunction;
@@ -65,7 +51,13 @@ import static io.trino.spi.StandardErrorCode.NOT_SUPPORTED;
 import static io.trino.spi.connector.ConnectorMetadata.MODIFYING_ROWS_MESSAGE;
 import static io.trino.spi.type.DateType.DATE;
 import static io.trino.spi.type.DecimalType.createDecimalType;
+import static java.lang.String.format;
 import static java.util.Locale.ENGLISH;
+
+import java.util.function.BiFunction;
+
+import static java.util.stream.Collectors.joining;
+
 
 public class ExasolClient
         extends BaseJdbcClient
@@ -279,4 +271,44 @@ public class ExasolClient
     {
         throw new TrinoException(NOT_SUPPORTED, "This connector does not support inserts");
     }
+
+    @Override
+
+    protected Optional<BiFunction<String, Long, String>> limitFunction()
+    {
+        return Optional.of((sql, limit) -> sql + " LIMIT " + limit);
+    }
+
+    @Override
+    protected Optional<TopNFunction> topNFunction()
+    {
+        return Optional.of((query, sortItems, limit) -> {
+            String orderBy = sortItems.stream()
+                    .map(sortItem -> {
+                        String ordering = sortItem.sortOrder().isAscending() ? "ASC" : "DESC";
+                        String nullsHandling = sortItem.sortOrder().isNullsFirst() ? "NULLS FIRST" : "NULLS LAST";
+                        return format("%s %s %s", quoted(sortItem.column().getColumnName()), ordering, nullsHandling);
+                    })
+                    .collect(joining(", "));
+            return format("%s ORDER BY %s LIMIT %d", query, orderBy, limit);
+        });
+    }
+
+    @Override
+    public boolean isTopNGuaranteed(ConnectorSession session)
+    {
+        return true;
+    }
+
+    @Override
+    public boolean isLimitGuaranteed(ConnectorSession session) { return true; }
+
+    @Override
+    public boolean supportsTopN(ConnectorSession session, JdbcTableHandle handle, List<JdbcSortItem> sortOrder)
+    {
+        return true;
+    }
+
+
+
 }

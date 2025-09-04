@@ -23,6 +23,8 @@ import io.trino.testing.TestingConnectorBehavior;
 import io.trino.testing.sql.SqlExecutor;
 import io.trino.testing.sql.TestTable;
 import io.trino.testing.sql.TestView;
+
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Isolated;
 
@@ -61,9 +63,7 @@ final class TestExasolConnectorTest
         return switch (connectorBehavior) {
             // Tests requires write access which is not implemented
             case SUPPORTS_AGGREGATION_PUSHDOWN,
-                 SUPPORTS_JOIN_PUSHDOWN,
-                 SUPPORTS_LIMIT_PUSHDOWN,
-                 SUPPORTS_TOPN_PUSHDOWN -> false;
+                 SUPPORTS_JOIN_PUSHDOWN -> false;
 
             // Parallel writing is not supported due to restrictions of the Exasol JDBC driver.
             case SUPPORTS_ADD_COLUMN,
@@ -84,6 +84,16 @@ final class TestExasolConnectorTest
             default -> super.hasBehavior(connectorBehavior);
         };
     }
+
+    @Override
+    @Test
+    @Disabled("Exasol connector does not support CREATE TABLE")
+    public void testCaseSensitiveTopNPushdown() { }
+
+    @Override
+    @Test
+    @Disabled("Exasol connector does not support CREATE TABLE")
+    public void testNullSensitiveTopNPushdown() { }
 
     @Override
     protected Optional<DataMappingTestSetup> filterDataMappingSmokeTestData(DataMappingTestSetup setup)
