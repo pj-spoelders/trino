@@ -23,7 +23,6 @@ import io.trino.testing.TestingConnectorBehavior;
 import io.trino.testing.sql.SqlExecutor;
 import io.trino.testing.sql.TestTable;
 import io.trino.testing.sql.TestView;
-
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Isolated;
@@ -88,12 +87,14 @@ final class TestExasolConnectorTest
     @Override
     @Test
     @Disabled("Exasol connector does not support CREATE TABLE")
-    public void testCaseSensitiveTopNPushdown() { }
+    public void testCaseSensitiveTopNPushdown()
+    { }
 
     @Override
     @Test
     @Disabled("Exasol connector does not support CREATE TABLE")
-    public void testNullSensitiveTopNPushdown() { }
+    public void testNullSensitiveTopNPushdown()
+    { }
 
     @Override
     protected Optional<DataMappingTestSetup> filterDataMappingSmokeTestData(DataMappingTestSetup setup)
