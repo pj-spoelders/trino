@@ -335,15 +335,7 @@ jobs:
             ${PTL_OPTS:-} \
             --bind=off --logs-dir logs/ --timeout 2h
 
-      - name: Disk space report afterwards
-        if: always()
-        run: |
-          echo "=== Host disk usage ==="
-          df -h /
-      
-          echo
-          echo "=== Docker disk usage ==="
-          docker system df
+
       - name: Compute unique logs artifact name
         if: always()
         id: pt-logs-name
@@ -358,12 +350,6 @@ jobs:
           path: logs/
           retention-days: 7
 
-      - name: Show Docker containers
-        if: always()
-        run: |
-          echo "=== docker ps -a ==="
-          docker ps -a --format '{{.ID}} {{.Image}} {{.Status}}' || echo "docker ps failed"
-          echo "===================="
 
       - name: Collect Exasol logs
         if: always()
@@ -398,3 +384,19 @@ jobs:
           name: exasol-logs-${{ steps.pt-logs-name.outputs.name }}
           path: exasol-logs
           retention-days: 7
+      - name: Show Docker containers
+        if: always()
+        run: |
+          echo "=== docker ps -a ==="
+          docker ps -a --format '{{.ID}} {{.Image}} {{.Status}}' || echo "docker ps failed"
+          echo "===================="
+
+      - name: Disk space report afterwards
+        if: always()
+        run: |
+          echo "=== Host disk usage ==="
+          df -h /
+      
+          echo
+          echo "=== Docker disk usage ==="
+          docker system df
