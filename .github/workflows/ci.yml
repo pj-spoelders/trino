@@ -336,6 +336,7 @@ jobs:
             --bind=off --logs-dir logs/ --timeout 2h
 
       - name: Disk space report afterwards
+        if: always()
         run: |
           echo "=== Host disk usage ==="
           df -h /
