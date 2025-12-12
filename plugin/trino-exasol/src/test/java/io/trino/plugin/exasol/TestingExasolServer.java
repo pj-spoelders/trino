@@ -47,7 +47,7 @@ public class TestingExasolServer
 
     public TestingExasolServer()
     {
-        container = new ExasolContainer<>("2025.1.8")
+        container = new ExasolContainer<>("exadockerci4/docker-db:2025.1.8_dev_java_slc_only")
                 .withExposedPorts(8563)
                 .withRequiredServices(ExasolService.JDBC)
                 .withEnv("COSLWD_ENABLED", "1"); //Disables rsyslogd, cleans up log clutter and speeds up database startup
