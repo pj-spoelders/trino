@@ -296,7 +296,7 @@ jobs:
       - name: Disk space report
         run: |
           echo "=== Host disk usage ==="
-          df -h /
+          df -h
       
           echo
           echo "=== Docker disk usage ==="
@@ -395,7 +395,7 @@ jobs:
         if: always()
         run: |
           echo "=== Host disk usage ==="
-          df -h /
+          df -h
       
           echo
           echo "=== Docker disk usage ==="
