@@ -267,7 +267,7 @@ jobs:
     timeout-minutes: 15
     needs: build-pt
     steps:
-      - uses: actions/6
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0 # checkout all commits, as the build result depends on `git describe` equivalent
           ref: |
