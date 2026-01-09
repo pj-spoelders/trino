@@ -57,10 +57,10 @@ public class EnvMultinodeExasol
     private DockerContainer createExasol()
     {
         DockerContainer container = new DockerContainer("exadockerci4/docker-db:2025.1.8_dev_java_slc_only", "exasol") //Test container tailored to reduce used disk space and solve CI disk space pressure issue.
-                .withStartupCheckStrategy(new IsRunningStartupCheckStrategy())
+                .withStartupCheckStrategy(new IsRunningStartupCheckStrategy().withTimeout(java.time.Duration.ofSeconds(10)))
                 .waitingFor(forSelectedPorts(EXASOL_PORT).withStartupTimeout(java.time.Duration.ofSeconds(10)))
-                .withEnv("COSLWD_ENABLED", "1") //Disables rsyslogd, cleans up log clutter and speeds up database startup         
-                .withStartupAttempts(3); 
+                .withEnv("COSLWD_ENABLED", "1") //Disables rsyslogd, cleans up log clutter and speeds up database startup
+                .withStartupAttempts(3);
         container.setPrivilegedMode(true);
         portBinder.exposePort(container, EXASOL_PORT);
         return container;
