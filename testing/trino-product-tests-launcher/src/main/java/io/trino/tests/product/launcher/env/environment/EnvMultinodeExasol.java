@@ -23,6 +23,9 @@ import io.trino.tests.product.launcher.env.common.StandardMultinode;
 import io.trino.tests.product.launcher.env.common.TestsEnvironment;
 import io.trino.tests.product.launcher.testcontainers.PortBinder;
 import org.testcontainers.containers.startupcheck.IsRunningStartupCheckStrategy;
+import org.testcontainers.containers.wait.strategy.LogMessageWaitStrategy;
+import org.testcontainers.containers.wait.strategy.WaitAllStrategy;
+import org.testcontainers.containers.wait.strategy.WaitStrategy;
 
 import static io.trino.tests.product.launcher.docker.ContainerUtil.forSelectedPorts;
 import static io.trino.tests.product.launcher.env.EnvironmentContainers.configureTempto;
@@ -54,11 +57,24 @@ public class EnvMultinodeExasol
         configureTempto(builder, configDir);
     }
 
+    public static WaitStrategy waitForExasolStage6Finished()
+    {
+        return new LogMessageWaitStrategy()
+                .withRegEx("(?s).*stage6\\s*:\\s*All\\s+stages\\s+finished.*")
+                .withTimes(1);
+    }
+
+    WaitAllStrategy ready = new WaitAllStrategy(WaitAllStrategy.Mode.WITH_INDIVIDUAL_TIMEOUTS_ONLY)
+            .withStrategy(waitForExasolStage6Finished().withStartupTimeout(java.time.Duration.ofMinutes(10)))
+            .withStrategy(forSelectedPorts(EXASOL_PORT).withStartupTimeout(java.time.Duration.ofSeconds(10)));
+
+
     private DockerContainer createExasol()
     {
         DockerContainer container = new DockerContainer("exadockerci4/docker-db:2025.1.8_dev_java_slc_only", "exasol") //Test container tailored to reduce used disk space and solve CI disk space pressure issue.
                 .withStartupCheckStrategy(new IsRunningStartupCheckStrategy().withTimeout(java.time.Duration.ofSeconds(10)))
-                .waitingFor(forSelectedPorts(EXASOL_PORT).withStartupTimeout(java.time.Duration.ofSeconds(10)))
+                //.waitingFor(forSelectedPorts(EXASOL_PORT).withStartupTimeout(java.time.Duration.ofSeconds(10)))
+                .waitingFor(ready)
                 .withEnv("COSLWD_ENABLED", "1") //Disables rsyslogd, cleans up log clutter and speeds up database startup
                 .withStartupAttempts(3);
         container.setPrivilegedMode(true);
