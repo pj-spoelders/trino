@@ -130,32 +130,32 @@ jobs:
             - suite-exasol
             - suite-exasol
             - suite-exasol
-            - suite-exasol
-            - suite-exasol
-            - suite-exasol
-            - suite-exasol
-            - suite-exasol
-            - suite-exasol
-            - suite-exasol
-            - suite-exasol
-            - suite-exasol
-            - suite-exasol
-            - suite-exasol
-            - suite-exasol
-            - suite-exasol
-            - suite-exasol
-            - suite-exasol
-            - suite-exasol
-            - suite-exasol
-            - suite-exasol
-            - suite-exasol
-            - suite-exasol
-            - suite-exasol
-            - suite-exasol
-            - suite-exasol
-            - suite-exasol
-            - suite-exasol
-            - suite-exasol
+            # - suite-exasol
+            # - suite-exasol
+            # - suite-exasol
+            # - suite-exasol
+            # - suite-exasol
+            # - suite-exasol
+            # - suite-exasol
+            # - suite-exasol
+            # - suite-exasol
+            # - suite-exasol
+            # - suite-exasol
+            # - suite-exasol
+            # - suite-exasol
+            # - suite-exasol
+            # - suite-exasol
+            # - suite-exasol
+            # - suite-exasol
+            # - suite-exasol
+            # - suite-exasol
+            # - suite-exasol
+            # - suite-exasol
+            # - suite-exasol
+            # - suite-exasol
+            # - suite-exasol
+            # - suite-exasol
+            # - suite-exasol
           exclude:
             - suite: suite-azure
               ignore exclusion if: >-
