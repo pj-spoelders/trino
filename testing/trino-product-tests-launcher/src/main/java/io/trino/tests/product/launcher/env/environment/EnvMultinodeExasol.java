@@ -65,7 +65,7 @@ public class EnvMultinodeExasol
     }
 
     WaitAllStrategy ready = new WaitAllStrategy(WaitAllStrategy.Mode.WITH_INDIVIDUAL_TIMEOUTS_ONLY)
-            .withStrategy(waitForExasolStage6Finished().withStartupTimeout(java.time.Duration.ofMinutes(10)))
+            .withStrategy(waitForExasolStage6Finished().withStartupTimeout(java.time.Duration.ofSeconds(10)))
             .withStrategy(forSelectedPorts(EXASOL_PORT).withStartupTimeout(java.time.Duration.ofSeconds(10)));
 
 
