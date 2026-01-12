@@ -75,8 +75,8 @@ public class EnvMultinodeExasol
                 .withStartupCheckStrategy(new IsRunningStartupCheckStrategy().withTimeout(java.time.Duration.ofSeconds(10)))
                 //.waitingFor(forSelectedPorts(EXASOL_PORT).withStartupTimeout(java.time.Duration.ofSeconds(10)))
                 .waitingFor(ready)
-                .withEnv("COSLWD_ENABLED", "1") //Disables rsyslogd, cleans up log clutter and speeds up database startup
-                .withStartupAttempts(3);
+                .withEnv("COSLWD_ENABLED", "1"); //Disables rsyslogd, cleans up log clutter and speeds up database startup
+               // .withStartupAttempts(3);
         container.setPrivilegedMode(true);
         portBinder.exposePort(container, EXASOL_PORT);
         return container;
