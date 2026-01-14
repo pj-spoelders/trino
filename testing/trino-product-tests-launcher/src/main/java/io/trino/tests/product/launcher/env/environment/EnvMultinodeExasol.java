@@ -73,6 +73,24 @@ public class EnvMultinodeExasol
                 .withStartupTimeout(java.time.Duration.ofMinutes(5)); // overall “give up” time (replace infinite loop)
     }
 
+    public static WaitStrategy exasolReadyViaCurl(int port) {
+        String command =
+                "bash -c '"
+                        + "while true; do "
+                        + "  resp=$(curl -sk --max-time 5 https://localhost:" + port + "/ 2>/dev/null || true); "
+                        + "  if [ -n \"$resp\" ] && "
+                        + "     (echo \"$resp\" | grep -q \"status\" || "
+                        + "      echo \"$resp\" | grep -q \"WebSocket\" || "
+                        + "      echo \"$resp\" | grep -q \"error\"); then "
+                        + "    exit 0; "
+                        + "  fi; "
+                        + "  sleep 0.5; "
+                        + "done'";
+
+        return Wait.forSuccessfulCommand(command)
+                .withStartupTimeout(java.time.Duration.ofMinutes(5));
+    }
+
     public static WaitStrategy waitForExasolStage6Finished()
     {
         return new LogMessageWaitStrategy()
@@ -91,7 +109,8 @@ public class EnvMultinodeExasol
                 .withStartupCheckStrategy(new IsRunningStartupCheckStrategy().withTimeout(java.time.Duration.ofSeconds(10)))
                 //.waitingFor(forSelectedPorts(EXASOL_PORT).withStartupTimeout(java.time.Duration.ofSeconds(10)))
                 //.waitingFor(ready)
-                .waitingFor(exasolHttpReady("/", EXASOL_PORT))
+                //.waitingFor(exasolHttpReady("/", EXASOL_PORT))
+                .waitingFor(exasolReadyViaCurl(EXASOL_PORT))//;
                 .withEnv("COSLWD_ENABLED", "1"); //Disables rsyslogd, cleans up log clutter and speeds up database startup
                 //.withStartupAttempts(3);
         container.setPrivilegedMode(true);
