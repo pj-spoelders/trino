@@ -24,6 +24,7 @@ import io.trino.tests.product.launcher.env.common.TestsEnvironment;
 import io.trino.tests.product.launcher.testcontainers.PortBinder;
 import org.testcontainers.containers.startupcheck.IsRunningStartupCheckStrategy;
 import org.testcontainers.containers.wait.strategy.LogMessageWaitStrategy;
+import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.containers.wait.strategy.WaitAllStrategy;
 import org.testcontainers.containers.wait.strategy.WaitStrategy;
 
@@ -57,6 +58,21 @@ public class EnvMultinodeExasol
         configureTempto(builder, configDir);
     }
 
+    public static WaitStrategy exasolHttpReady(String path, int port) {
+        return Wait.forHttp(path)
+                .forPort(port)                 // if the HTTP service is NOT on the first exposed port
+                .usingTls()                    // because your script calls https://...
+                .allowInsecure()               // because your script uses curl -k (skip cert validation)
+                .withReadTimeout(java.time.Duration.ofSeconds(5))  // like curl --max-time 5 (rough equivalent)
+                .forResponsePredicate(body ->
+                        body != null
+                                && !body.isEmpty()
+                                && (body.contains("status")
+                                || body.contains("WebSocket")
+                                || body.contains("error")))
+                .withStartupTimeout(java.time.Duration.ofMinutes(5)); // overall “give up” time (replace infinite loop)
+    }
+
     public static WaitStrategy waitForExasolStage6Finished()
     {
         return new LogMessageWaitStrategy()
@@ -74,9 +90,10 @@ public class EnvMultinodeExasol
         DockerContainer container = new DockerContainer("exadockerci4/docker-db:2025.1.8_dev_java_slc_only", "exasol") //Test container tailored to reduce used disk space and solve CI disk space pressure issue.
                 .withStartupCheckStrategy(new IsRunningStartupCheckStrategy().withTimeout(java.time.Duration.ofSeconds(10)))
                 //.waitingFor(forSelectedPorts(EXASOL_PORT).withStartupTimeout(java.time.Duration.ofSeconds(10)))
-                .waitingFor(ready)
+                //.waitingFor(ready)
+                .waitingFor(exasolHttpReady("/", EXASOL_PORT))
                 .withEnv("COSLWD_ENABLED", "1"); //Disables rsyslogd, cleans up log clutter and speeds up database startup
-               // .withStartupAttempts(3);
+                //.withStartupAttempts(3);
         container.setPrivilegedMode(true);
         portBinder.exposePort(container, EXASOL_PORT);
         return container;
