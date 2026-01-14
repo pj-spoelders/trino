@@ -61,7 +61,7 @@ public class EnvMultinodeExasol
     public static WaitStrategy exasolHttpReady(String path, int port) {
         return Wait.forHttp(path)
                 .forPort(port)                 // if the HTTP service is NOT on the first exposed port
-                .usingTls()                    // because your script calls https://...
+                //.usingTls()                    // because your script calls https://...
                 .allowInsecure()               // because your script uses curl -k (skip cert validation)
                 .withReadTimeout(java.time.Duration.ofSeconds(5))  // like curl --max-time 5 (rough equivalent)
                 .forResponsePredicate(body ->
