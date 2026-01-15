@@ -88,7 +88,7 @@ public class EnvMultinodeExasol
                         + "done'";
 
         return Wait.forSuccessfulCommand(command)
-                .withStartupTimeout(java.time.Duration.ofSeconds(5));
+                .withStartupTimeout(java.time.Duration.ofMinutes(5));
     }
 
     public static WaitStrategy waitForExasolStage6Finished()

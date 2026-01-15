@@ -130,14 +130,14 @@ jobs:
             - suite-exasol
             - suite-exasol
             - suite-exasol
-            # - suite-exasol
-            # - suite-exasol
-            # - suite-exasol
-            # - suite-exasol
-            # - suite-exasol
-            # - suite-exasol
-            # - suite-exasol
-            # - suite-exasol
+            - suite-exasol
+            - suite-exasol
+            - suite-exasol
+            - suite-exasol
+            - suite-exasol
+            - suite-exasol
+            - suite-exasol
+            - suite-exasol
             # - suite-exasol
             # - suite-exasol
             # - suite-exasol
