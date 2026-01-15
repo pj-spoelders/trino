@@ -23,12 +23,9 @@ import io.trino.tests.product.launcher.env.common.StandardMultinode;
 import io.trino.tests.product.launcher.env.common.TestsEnvironment;
 import io.trino.tests.product.launcher.testcontainers.PortBinder;
 import org.testcontainers.containers.startupcheck.IsRunningStartupCheckStrategy;
-import org.testcontainers.containers.wait.strategy.LogMessageWaitStrategy;
 import org.testcontainers.containers.wait.strategy.Wait;
-import org.testcontainers.containers.wait.strategy.WaitAllStrategy;
 import org.testcontainers.containers.wait.strategy.WaitStrategy;
 
-import static io.trino.tests.product.launcher.docker.ContainerUtil.forSelectedPorts;
 import static io.trino.tests.product.launcher.env.EnvironmentContainers.configureTempto;
 import static java.util.Objects.requireNonNull;
 import static org.testcontainers.utility.MountableFile.forHostPath;
@@ -58,61 +55,33 @@ public class EnvMultinodeExasol
         configureTempto(builder, configDir);
     }
 
-    public static WaitStrategy exasolHttpReady(String path, int port) {
-        return Wait.forHttp(path)
-                .forPort(port)                 // if the HTTP service is NOT on the first exposed port
-                //.usingTls()                    // because your script calls https://...
-                .allowInsecure()               // because your script uses curl -k (skip cert validation)
-                .withReadTimeout(java.time.Duration.ofSeconds(5))  // like curl --max-time 5 (rough equivalent)
-                .forResponsePredicate(body ->
-                        body != null
-                                && !body.isEmpty()
-                                && (body.contains("status")
-                                || body.contains("WebSocket")
-                                || body.contains("error")))
-                .withStartupTimeout(java.time.Duration.ofMinutes(5)); // overall “give up” time (replace infinite loop)
-    }
-
-    public static WaitStrategy exasolReadyViaCurl(int port) {
-        String command =
-                "bash -c '"
-                        + "while true; do "
-                        + "  resp=$(curl -sk --max-time 5 https://localhost:" + port + "/ 2>/dev/null || true); "
-                        + "  if [ -n \"$resp\" ] && "
-                        + "     (echo \"$resp\" | grep -q \"status\" || "
-                        + "      echo \"$resp\" | grep -q \"WebSocket\" || "
-                        + "      echo \"$resp\" | grep -q \"error\"); then "
-                        + "    exit 0; "
-                        + "  fi; "
-                        + "  sleep 0.5; "
-                        + "done'";
+    public static WaitStrategy exasolReadyViaCurl(int port)
+    {
+        String command = String.format("""
+            bash -c '
+            while true; do
+              resp=$(curl -sk --max-time 5 https://localhost:%d/ 2>/dev/null || true)
+              if [ -n "$resp" ] && (
+                   echo "$resp" | grep -q "status" ||
+                   echo "$resp" | grep -q "WebSocket" ||
+                   echo "$resp" | grep -q "error"
+                 ); then
+                exit 0
+              fi
+              sleep 0.5
+            done'
+            """, port);
 
         return Wait.forSuccessfulCommand(command)
                 .withStartupTimeout(java.time.Duration.ofMinutes(5));
     }
 
-    public static WaitStrategy waitForExasolStage6Finished()
-    {
-        return new LogMessageWaitStrategy()
-                .withRegEx("(?s).*stage6\\s*:\\s*All\\s+stages\\s+finished.*")
-                .withTimes(1);
-    }
-
-    WaitAllStrategy ready = new WaitAllStrategy(WaitAllStrategy.Mode.WITH_INDIVIDUAL_TIMEOUTS_ONLY)
-            .withStrategy(waitForExasolStage6Finished().withStartupTimeout(java.time.Duration.ofSeconds(10)))
-            .withStrategy(forSelectedPorts(EXASOL_PORT).withStartupTimeout(java.time.Duration.ofSeconds(10)));
-
-
     private DockerContainer createExasol()
     {
         DockerContainer container = new DockerContainer("exadockerci4/docker-db:2025.1.8_dev_java_slc_only", "exasol") //Test container tailored to reduce used disk space and solve CI disk space pressure issue.
                 .withStartupCheckStrategy(new IsRunningStartupCheckStrategy().withTimeout(java.time.Duration.ofSeconds(10)))
-                //.waitingFor(forSelectedPorts(EXASOL_PORT).withStartupTimeout(java.time.Duration.ofSeconds(10)))
-                //.waitingFor(ready)
-                //.waitingFor(exasolHttpReady("/", EXASOL_PORT))
-                .waitingFor(exasolReadyViaCurl(EXASOL_PORT))//;
+                .waitingFor(exasolReadyViaCurl(EXASOL_PORT))
                 .withEnv("COSLWD_ENABLED", "1"); //Disables rsyslogd, cleans up log clutter and speeds up database startup
-                //.withStartupAttempts(3);
         container.setPrivilegedMode(true);
         portBinder.exposePort(container, EXASOL_PORT);
         return container;
