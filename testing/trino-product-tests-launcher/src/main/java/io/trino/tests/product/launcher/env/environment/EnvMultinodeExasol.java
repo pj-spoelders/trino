@@ -73,7 +73,7 @@ public class EnvMultinodeExasol
             """, port);
 
         return Wait.forSuccessfulCommand(command)
-                .withStartupTimeout(java.time.Duration.ofMinutes(5));
+                .withStartupTimeout(java.time.Duration.ofSeconds(5));
     }
 
     private DockerContainer createExasol()
