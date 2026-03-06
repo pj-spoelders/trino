@@ -30,10 +30,13 @@ import io.trino.plugin.jdbc.credential.CredentialProvider;
 import io.trino.plugin.jdbc.ptf.Query;
 import io.trino.spi.function.table.ConnectorTableFunction;
 
+import io.trino.spi.connector.ConnectorPageSourceProvider;
+import static com.google.inject.multibindings.OptionalBinder.newOptionalBinder;
+import static io.airlift.configuration.ConfigBinder.configBinder;
+
 import java.util.Properties;
 
 import static com.google.inject.multibindings.Multibinder.newSetBinder;
-import static io.airlift.configuration.ConfigBinder.configBinder;
 
 public class ExasolClientModule
         extends AbstractConfigurationAwareModule
@@ -41,9 +44,24 @@ public class ExasolClientModule
     @Override
     protected void setup(Binder binder)
     {
+        //“Whenever someone asks for @ForBaseJdbc JdbcClient, give them a single shared instance of ExasolClient.”
         binder.bind(JdbcClient.class).annotatedWith(ForBaseJdbc.class).to(ExasolClient.class).in(Scopes.SINGLETON);
+        //This wires JdbcStatisticsConfig so Trino can read config properties from catalog config (etc/catalog/exasol.properties) into a strongly typed config object.
         configBinder(binder).bindConfig(JdbcStatisticsConfig.class);
+        //wiring for tablefunctions
         newSetBinder(binder, ConnectorTableFunction.class).addBinding().toProvider(Query.class).in(Scopes.SINGLETON);
+
+        // ✅ NEW: bind session properties holder (boolean exasol.parallel)
+        //Trino connectors can define session properties (set per query / per session) like:
+        //
+        //SET SESSION exasol.parallel = true;
+        binder.bind(ExasolSessionProperties.class).in(Scopes.SINGLETON);
+
+        // ✅ NEW: override default JDBC page source provider with our parallel provider
+        newOptionalBinder(binder, ConnectorPageSourceProvider.class)
+                .setBinding()
+                .to(ExasolParallelPageSourceProvider.class)
+                .in(Scopes.SINGLETON);
     }
 
     @Provides
