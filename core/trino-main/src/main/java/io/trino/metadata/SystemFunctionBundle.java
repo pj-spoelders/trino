@@ -26,6 +26,8 @@ import io.trino.operator.aggregation.ApproximateSetAggregation;
 import io.trino.operator.aggregation.ApproximateSetGenericAggregation;
 import io.trino.operator.aggregation.ArbitraryAggregationFunction;
 import io.trino.operator.aggregation.BigintApproximateMostFrequent;
+import io.trino.operator.aggregation.BigintAverageAggregations;
+import io.trino.operator.aggregation.BigintSumAggregation;
 import io.trino.operator.aggregation.BitwiseAndAggregation;
 import io.trino.operator.aggregation.BitwiseOrAggregation;
 import io.trino.operator.aggregation.BitwiseXorAggregation;
@@ -55,8 +57,6 @@ import io.trino.operator.aggregation.IntervalYearToMonthSumAggregation;
 import io.trino.operator.aggregation.LegacyApproximateDoublePercentileAggregations;
 import io.trino.operator.aggregation.LegacyApproximateLongPercentileAggregations;
 import io.trino.operator.aggregation.LegacyApproximateRealPercentileAggregations;
-import io.trino.operator.aggregation.LongAverageAggregations;
-import io.trino.operator.aggregation.LongSumAggregation;
 import io.trino.operator.aggregation.MapAggregationFunction;
 import io.trino.operator.aggregation.MapUnionAggregation;
 import io.trino.operator.aggregation.MaxAggregationFunction;
@@ -67,6 +67,8 @@ import io.trino.operator.aggregation.MergeQuantileDigestFunction;
 import io.trino.operator.aggregation.MergeTDigestAggregation;
 import io.trino.operator.aggregation.MinAggregationFunction;
 import io.trino.operator.aggregation.MinByAggregationFunction;
+import io.trino.operator.aggregation.NumberAverageAggregation;
+import io.trino.operator.aggregation.NumberSumAggregation;
 import io.trino.operator.aggregation.QuantileDigestAggregationFunction.BigintQuantileDigestAggregationFunction;
 import io.trino.operator.aggregation.QuantileDigestAggregationFunction.DoubleQuantileDigestAggregationFunction;
 import io.trino.operator.aggregation.QuantileDigestAggregationFunction.RealQuantileDigestAggregationFunction;
@@ -231,6 +233,7 @@ import io.trino.operator.scalar.timestamptz.TimestampWithTimeZoneToTimeWithTimeZ
 import io.trino.operator.scalar.timestamptz.TimestampWithTimeZoneToTimestampCast;
 import io.trino.operator.scalar.timestamptz.TimestampWithTimeZoneToTimestampWithTimeZoneCast;
 import io.trino.operator.scalar.timestamptz.TimestampWithTimeZoneToVarcharCast;
+import io.trino.operator.scalar.timestamptz.ToUnixTime;
 import io.trino.operator.scalar.timestamptz.VarcharToTimestampWithTimeZoneCast;
 import io.trino.operator.scalar.timetz.CurrentTime;
 import io.trino.operator.scalar.timetz.TimeWithTimeZoneOperators;
@@ -400,12 +403,14 @@ public final class SystemFunctionBundle
                 .aggregates(BooleanOrAggregation.class)
                 .aggregates(DoubleSumAggregation.class)
                 .aggregates(RealSumAggregation.class)
-                .aggregates(LongSumAggregation.class)
+                .aggregates(BigintSumAggregation.class)
+                .aggregates(NumberSumAggregation.class)
                 .aggregates(IntervalDayToSecondSumAggregation.class)
                 .aggregates(IntervalYearToMonthSumAggregation.class)
-                .aggregates(LongAverageAggregations.class)
+                .aggregates(BigintAverageAggregations.class)
                 .aggregates(DoubleAverageAggregations.class)
                 .aggregates(RealAverageAggregation.class)
+                .aggregates(NumberAverageAggregation.class)
                 .aggregates(IntervalDayToSecondAverageAggregation.class)
                 .aggregates(IntervalYearToMonthAverageAggregation.class)
                 .aggregates(GeometricMeanAggregations.class)
@@ -448,6 +453,9 @@ public final class SystemFunctionBundle
                 .scalar(MathFunctions.TruncateN.class)
                 .scalar(MathFunctions.Ceiling.class)
                 .scalar(MathFunctions.Floor.class)
+                .scalar(MathFunctions.IsFinite.class)
+                .scalar(MathFunctions.IsInfinite.class)
+                .scalar(MathFunctions.IsNan.class)
                 .scalars(BitwiseFunctions.class)
                 .scalars(DateTimeFunctions.class)
                 .scalar(DateTimeFunctions.FromUnixtimeNanosDecimal.class)
@@ -687,7 +695,7 @@ public final class SystemFunctionBundle
                 .scalar(io.trino.operator.scalar.timestamptz.DateDiff.class)
                 .scalar(io.trino.operator.scalar.timestamptz.DateFormat.class)
                 .scalar(io.trino.operator.scalar.timestamptz.FormatDateTime.class)
-                .scalar(io.trino.operator.scalar.timestamptz.ToUnixTime.class)
+                .scalar(ToUnixTime.class)
                 .scalar(io.trino.operator.scalar.timestamptz.LastDayOfMonth.class)
                 .scalar(AtTimeZone.class)
                 .scalar(AtTimeZoneWithOffset.class)

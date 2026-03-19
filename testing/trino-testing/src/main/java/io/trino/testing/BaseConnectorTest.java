@@ -1457,6 +1457,8 @@ public abstract class BaseConnectorTest
                     DOUBLE '12345.678901234' a_double,
                     CAST('1234567.8901' AS decimal(11, 4)) a_short_decimal,
                     CAST('1234567890123456789.0123456' AS decimal(26, 7)) a_long_decimal,
+                    NUMBER '1234567890123456789012345678901234567890.123456789012345678901234567890123456789' a_number,
+                    NUMBER '+Infinity' an_infinite_number,
                     CHAR 'few chars  ' a_char,
                     CAST('some string' AS varchar(33)) a_bounded_varchar,
                     CAST('some longer string' AS varchar) an_unbounded_varchar,
@@ -6208,7 +6210,7 @@ public abstract class BaseConnectorTest
     protected void testColumnName(String columnName, boolean delimited)
     {
         String nameInSql = toColumnNameInSql(columnName, delimited);
-        String tableName = "tcn_" + nameInSql.toLowerCase(ENGLISH).replaceAll("[^a-z0-9]", "") + randomNameSuffix();
+        String tableName = "test_column_" + nameInSql.toLowerCase(ENGLISH).replaceAll("[^a-z0-9]", "") + randomNameSuffix();
 
         try {
             // TODO test with both CTAS *and* CREATE TABLE + INSERT, since they use different connector API methods.
@@ -6252,7 +6254,7 @@ public abstract class BaseConnectorTest
     protected void testAddAndDropColumnName(String columnName, boolean delimited)
     {
         String nameInSql = toColumnNameInSql(columnName, delimited);
-        String tableName = "tcn_" + nameInSql.toLowerCase(ENGLISH).replaceAll("[^a-z0-9]", "") + randomNameSuffix();
+        String tableName = "test_add_drop_column_" + nameInSql.toLowerCase(ENGLISH).replaceAll("[^a-z0-9]", "") + randomNameSuffix();
 
         try {
             assertUpdate(createTableSqlForAddingAndDroppingColumn(tableName, nameInSql));
@@ -6296,7 +6298,7 @@ public abstract class BaseConnectorTest
     protected void testRenameColumnName(String columnName, boolean delimited)
     {
         String nameInSql = toColumnNameInSql(columnName, delimited);
-        String tableName = "tcn_" + nameInSql.replaceAll("[^a-z0-9]", "") + randomNameSuffix();
+        String tableName = "test_rename_column_" + nameInSql.replaceAll("[^a-z0-9]", "") + randomNameSuffix();
         // Use complex identifier to test a source column name when renaming columns
         String sourceColumnName = "a;b$c";
 
@@ -7482,7 +7484,7 @@ public abstract class BaseConnectorTest
         if (delimited) {
             nameInSql = "\"" + columnName.replace("\"", "\"\"") + "\"";
         }
-        String viewName = "tcn_" + nameInSql.toLowerCase(ENGLISH).replaceAll("[^a-z0-9]", "_") + "_" + randomNameSuffix();
+        String viewName = "test_mv_column_" + nameInSql.toLowerCase(ENGLISH).replaceAll("[^a-z0-9]", "_") + "_" + randomNameSuffix();
 
         try {
             assertUpdate("CREATE MATERIALIZED VIEW " + viewName + " AS SELECT 'sample value' key, 'abc' " + nameInSql);
